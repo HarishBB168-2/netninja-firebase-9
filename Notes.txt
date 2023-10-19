@@ -1,0 +1,29 @@
+Video Ref : https://www.youtube.com/watch?v=9zdvmgGsww0&list=PL4cUxeGkcC9jERUGvbudErNCeSZHWUVlb
+
+Section 1 : Intro
+
+- What is Firebase?
+* Backend as service
+* Provides :
+database, authentication, file storage, 
+cloud functions, hosting etc.
+* Can plug directly into frontend.
+* No need to setup our own backend.
+
+- Setup
+* Go to console
+console.firebase.google.com
+* Firebase v8 vs v9
+> v8 uses Object oriented approach
+> v9 uses functional approach
+> Only import required functions.
+> Can use tree-shaking : only including
+used functions in final bundle js file.
+
+- Course files
+https://github.com/iamshaunjp/Getting-Started-with-Firebase-9
+
+- Setting up Wepback
+* Bundles different source code together
+* CLI tools like create-react-app includes 
+bundler like Wepback

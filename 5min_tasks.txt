@@ -1,0 +1,305 @@
+
+Task 1 : Setting up Webpack and Firebase
+
+- Directory setup
+* Create src and dist folders in root
+* Create src/index.js file
+* Create dist/index.html file
+* Inside html file generate boilerplate code using
+snippet as:
+doc<Tab>
+> Change title to "Firebase 9"
+> Add h1 in body with "Getting started with firebase 9"
+
+- Installing and webpack setup
+* npm init -y
+* npm i --save-dev webpack webpack-cli 
+* Create in root webpack.config.js file as
+const path = require("path")
+
+module.export = {
+    mode: "development",
+    entry: "./src/index.js",
+    output: {
+        path: path.resolve(__dirname, 'dist'),
+        filename: 'bundle.js'
+    },
+    watch: true
+}
+
+- Run webpack 
+* In package.json add script
+scripts : {"build" : "webpack"}
+* In index.js add
+console.log("hello from index.js")
+* Run as : npm run build
+* In index.html link bundle.js as
+> At end of body tag add
+<script src="bundle.js"></script>
+* VSCode extension : live server
+* Open index.html using live server
+
+- Firebase console
+* Add project 
+> Name : Firebase 9 Test
+> Disable analytics > Create Project
+* Create webapp frontend 
+> Click </> icon
+> Give name : firebase 9 test website
+> Register app
+> Continue to console
+* Below Name of project,
+where no of apps is shown
+> Click there
+> Click on app : firebase 9 test website
+> Click on gear icon
+> Scroll Below
+> Select Config radio
+> Copy firebaseConfig
+* Install firebase : npm i firebase
+* In src/index.js
+> Empty it and add
+import {initializeApp} from 'firebase/app'
+const firebaseConfig = //paste here
+initializeApp(firebaseConfig)
+
+- Enable database
+* In firebase console, open project
+* In sidebar open Firestore Database
+* Create Database
+* Start in test mode
+* Next > Firestore location > Enable
+
+- Create collection
+* Start collection
+* collection id : books
+* Create first document 
+> Auto id
+> title : string: "The name of the wind"
+> author : string : "patrick rothfuss"
+* Create 2 more documents of books
+
+- Connect to DB in frontend
+* In index.js add
+> import {
+    getFirestore, collection, getDocs
+} from "firebase/firestore"
+* Connect to DB : after initializeApp
+const db = getFirestore()
+* Get reference of collection
+> collection(dbRef, collectionName)
+const colRef = collection(db, 'books')
+* Get collection data
+> In a async function
+async function getData() {
+try{
+const snapshot = await getDocs(colRef)
+let books = []
+snapshot.docs.forEach((doc) => {
+    books.push({...doc.data(), id: doc.id})
+})
+console.log(books)
+}
+catch (err) {
+    console.log(err.message)
+}
+}
+getData()
+
+--------------------------------------------------------
+
+Task 2 : Adding & Deleting documents
+
+- In index.html add after h1 add
+<h2>Firebase Firestore</h2>
+
+<form class="add">
+    <label for="title">Title</label>
+    <input type="text" name="title" required>
+    <label for="author">Author:</label>
+    <input type="text" name="author" required>
+
+    <button>add a new book</button>
+</form>
+
+<form class="delete">
+    <label for="id">Document id:</label>
+    <input type="text" name="id" required>
+
+    <button>delete a book</button>
+</form>
+
+- In index.js add
+* Import :
+import {.., addDoc, deleteDoc,
+    doc} from "firebase/firestore'
+* Functions
+> addDoc args : colRef, obj to add
+> doc : for getting reference of doc
+args : db, collectionName, docId 
+> deleteDoc args : docRef (Reference created from doc function)
+* Add at last
+const addBookForm = document.querySelector(".add")
+addBookForm.addEventListener('submit', async (e) => {
+    e.preventDefault()
+
+    await addDoc(colRef, {
+        title: addBookForm.title.value,
+        author: addBookForm.author.value,
+    })
+    addBookForm.reset()
+})
+const deleteBookForm = document.querySelector(".delete")
+deleteBookForm.addEventListener('submit', (e) => {
+    e.preventDefault()
+
+    const docRef = doc(db, 'books', deleteBookForm.id.value)
+
+    await deleteDoc(docRef)
+    deleteBookForm.reset()
+})
+
+- Checking
+* Add new book with details
+title : the way of kings
+author : brandon sanderson
+* Refresh the page
+* See the added book by refreshing
+* Copy of id of any book
+* Paste in delete input
+* Delete the book
+* See the change by refreshing
+
+- Real time collection data
+* Run a function on change in collection
+* In src/index.js
+> Remove getDocs function
+> Import :
+import {.., onSnapshot} from "firebase/firestore"
+> Add :
+onSnapshot(colRef, (snapshot) => {
+    let books = []
+    snapshot.docs.forEach((doc) => {
+        books.push({...doc.data(), id: doc.id})
+    })
+    console.log(books)
+})
+* Check in browser 
+> Refresh
+> Delete a book
+> See new entry in console
+> Add a new book
+> See new entry in console
+
+--------------------------------------------------------
+
+Task 3 : Firestore Queries
+
+- Using query and where funcs
+* Import :
+import {.., query, where}
+from "firebase/firestore"
+* query args : colRef, ...<queries>
+* where args : fieldName, operator, value
+* Write query as
+const q = query(colRef, where("author", "==", "patrick rothfuss"))
+* In onSnapshot rewrite as
+onSnapshot(q, ...)
+* Now onSnapshot will fire when there is change in
+result of this query.
+* Check
+> Reload page
+> See filtered data in console.
+> Add new book with the author used in query
+> See new entry in console.
+
+- Ordering data
+* Default ordering is by id
+* orderBy args : fieldName, [direction] (asc (default) or desc)
+* In src/index.js
+* import {..,orderBy} from "firebase/firestore"
+* Change const q as
+const q = query(colRef, where(..), 
+orderBy('title', 'desc'))
+* Check
+> Refresh and 
+> See error of index in the console 
+* Create index in firebase as
+> Click on link from error
+> Create index
+> Refresh and see result ordered by title
+
+- Adding timestamps
+* Delete collection books in firebase
+* In src/index.js
+* import {.., serverTimestamp} from "firebase/firestore"
+* In addBookForm change addDoc as
+addDoc(colRef, {
+    ...
+    createdAt: serverTimestamp()
+})
+* Change query to order by createdAt
+const q = query(colRef, orderBy('createdAt'))
+* Check
+> Add 3 books in collection from frontend
+> Refresh
+> See the order, which is createdAt
+> Add new book
+> Again see order.
+* Data in console is logged twice,
+as first time data is added without timestamp,
+and second time firebase adds timestamp to that
+document so data is changed in second time also.
+
+- Fetching a single document
+* In src/index.js
+import {.., getDoc} from "firebase/firestore"
+* Create docRef as
+const docRef = doc(db, 'books', '<id>')
+
+getDoc(docRef)
+    .then((doc) => {
+        console.log(doc.data(), doc.id)
+    })
+* Check in browser
+* Subscribing to document change
+> Remove getDoc
+> Add as
+onSnapshot(docRef, (doc) => {
+    console.log(doc.data(), doc.id)
+})
+* Check 
+> Change the document title in firebase
+> View change in console window of browser
+
+- Updating Documents
+* updateDoc args : docRef, object having new field values.
+* In index.html add
+<form class="update">
+    <label for="id">Document id:</label>
+    <input type="text" name="id" required>
+
+    <button>update a book</button>
+</form>
+* In index.js
+> import {.., updateDoc} from 'firebase/firestore'
+> Add
+const updateForm = document.querySelector(".update")
+updateForm.addEventListener('submit', (e) => {
+    e.preventDefault()
+    
+    const docRef = doc(db, 'books', updateForm.id.value)
+
+    updateDoc(docRef, {
+        title: 'updated title'
+    })
+    .then(() => {
+        updateForm.reset()
+    })
+})
+* Checking
+> Copy a document id and paste in input
+> Click update book
+> See new entry with changed title
+
+COMPLETED TILL 10th video
