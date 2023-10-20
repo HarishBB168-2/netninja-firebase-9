@@ -302,4 +302,173 @@ updateForm.addEventListener('submit', (e) => {
 > Click update book
 > See new entry with changed title
 
-COMPLETED TILL 10th video
+--------------------------------------------------------
+
+Task 4 : Firebase Auth Setup and Signup
+
+- Setup
+* Uses jsonwebtoken to authenticate users
+* Firebase
+> Go to firebase console
+> Go to authenticate Tab
+> Enable email/password method
+* Frontend
+> In index.js
+import {
+    getAuth
+} from 'firebase/auth'
+> After const db
+const auth = getAuth()
+
+- Sign up users
+* createUserWithEmailAndPassword
+> args : auth, email, password
+> User is automatically logged in after sign up
+* In index.html at last add
+<h2>Firebase Auth</h2>
+
+<form class="signup">
+    <label for="email">email:</label>
+    <input type="email" name="email">
+    <label for="password">password:</label>
+    <input type="password" name="password">
+    <button>signup</button>
+</form>
+* In index.js
+> import {...,
+    createUserWithEmailAndPassword
+} from 'firebase/auth'
+> Add at last
+const signupForm = document.querySelector('.signup')
+signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const email = signupForm.email.value
+    const password = signupForm.password.value
+    try {
+        const cred = await createUserWithEmailAndPassword(auth,
+            email, password)
+        console.log('user created:', cred.user)
+        signupForm.reset()
+    } catch (err) {
+        console.log(err.message)
+    }
+})
+* Checking
+> Enter username and password
+mario@yopmail.com
+test
+> See error of password at least 6 characters long
+> Use password : test12345 and signup
+> See user object in console
+> User object has displayName, email, accessToken, uid
+
+- Login & logout
+* signOut args : auth
+* In index.html add
+<form class="login">
+    <label for="email">email:</label>
+    <input type="email" name="email">
+    <label for="password">password:</label>
+    <input type="password" name="password">
+    <button>login</button>
+</form>
+<button class="logout">logout</button>
+* In index.js 
+> import {..,signOut,
+signInWithEmailAndPassword} from 'firebase/auth'
+> Add
+const logoutButton = document.querySelector('.logout')
+logoutButton.addEventListener('click', async () => {
+    try{
+        await signOut(auth)
+        console.log('the user signed out')
+    } catch (err) {
+        console.log(err.message)
+    }
+})
+const loginForm = document.querySelector('.login')
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const email = loginForm.email.value
+    const password = loginForm.password.value
+    try {
+        const cred = await signInWithEmailAndPassword(
+            auth, email, password)
+        console.log('user logged in:', cred.user)
+    } catch (err) {
+        console.log(err.message)
+    }
+})
+* Checking
+> Click logout
+> See logout message on console
+> Login with wrong user
+random@mail.com, test
+> See error : user not found
+> Login with correct user and wrong password
+mario@yopmail.com, test
+> See error : wrong password
+> Login with correct password : test12345
+> See the user object
+> Click logout
+> See user signed out msg
+
+--------------------------------------------------------
+
+Task 5 : Subscribing/Unsubscribing to changes
+
+- Subscribing to auth changes
+* onAuthStateChange
+> args : auth, func(user)
+> Runs when : login, logout, signup
+> user is null when logout
+* In index.js
+> import {.., onAuthStateChange} from 'firebase/auth'
+> Add
+onAuthStateChange(auth, (user) => {
+    console.log('user status changed:', user)
+})
+> comment the login and logout console.
+* Check
+> Refresh the page
+> See user status in console
+> Login with details :
+mario@yopmail.com, test12345
+> See user status in console
+> Logout
+> See user status to be null
+> Signup with new details
+abc@yopmail.com, test12345
+> See user status in console
+> Logout and see again in console
+
+- Unsubscribing from changes
+* In index.html add
+<h2>Unsubscribing</h2>
+<button class="unsub">unsubscribe from db/auth changes</button>
+* In index.js
+> Capture return of subscription in variable as
+const unsubCol = onSnapshot(q, ...)
+const unsubDoc = onSnapshot(docRef, ...)
+const unsubAuth = onAuthStateChange(...)
+> Add
+const unsubButton = document.querySelector('.unsub')
+unsubButton.addEventListener('click', () => {
+    console.log('unsubscribing')
+    unsubCol()
+    unsubDoc()
+    unsubAuth()
+})
+* Checking
+> Add new book with title and author
+> See new entry in console
+> Login with a credential
+mario@yopmail, 12345
+> Logout
+> See console output
+> Unsubscribe from changes
+> Add a new book
+> See no entry in console
+> Login and logout
+> See no entry in console
+

@@ -7,6 +7,13 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signOut,
+  signInWithEmailAndPassword,
+  onAuthStateChange,
+} from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDHWJ6NlyaL2tEUXrJEbHr5-_WYBVeZU40",
@@ -20,6 +27,8 @@ const firebaseConfig = {
 initializeApp(firebaseConfig);
 
 const db = getFirestore();
+
+const auth = getAuth();
 
 const colRef = collection(db, "books");
 
@@ -58,4 +67,45 @@ deleteBookForm.addEventListener("submit", async (e) => {
 
   await deleteDoc(docRef);
   deleteBookForm.reset();
+});
+
+const signupForm = document.querySelector(".signup");
+signupForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = signupForm.email.value;
+  const password = signupForm.password.value;
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    console.log("user created:", cred.user);
+    signupForm.reset();
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+const logoutButton = document.querySelector(".logout");
+logoutButton.addEventListener("click", async () => {
+  try {
+    await signOut(auth);
+    console.log("the user signed out");
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+const loginForm = document.querySelector(".login");
+loginForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = loginForm.email.value;
+  const password = loginForm.password.value;
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    console.log("user logged in:", cred.user);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+onAuthStateChange(auth, (user) => {
+  console.log("user status changed:", user);
 });
